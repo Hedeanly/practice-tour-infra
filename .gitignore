@@ -1,0 +1,9 @@
+#Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+
+#Firebase config (contain APIs keys)
+google-services.json
+GoogleService-Info.plist
