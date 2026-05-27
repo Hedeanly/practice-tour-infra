@@ -6,3 +6,4 @@ app = FastAPI()
 def root():
     return {"message": "Hello from tour-guide API!"}
 
+# test
