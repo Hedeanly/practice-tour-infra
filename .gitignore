@@ -7,3 +7,5 @@ terraform.tfvars
 #Firebase config (contain APIs keys)
 google-services.json
 GoogleService-Info.plist
+CLAUDE.md
+scripts/
