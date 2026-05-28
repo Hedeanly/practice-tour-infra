@@ -1,53 +1,62 @@
-name: Build and Deploy to Cloud Run
+name: Deploy to Prod
 
-# TRIGGER: when does this pipeline run?
 on:
   push:
-    branches: [main]  # only runs when code is pushed to main branch
+    branches: [main]
 
-# ENVIRONMENT VARIABLES: shared across all steps
 env:
   PROJECT_ID: project-e03d9435-10f2-445b-943
   REGION: asia-southeast1
   SERVICE_NAME: hello-service
   IMAGE: asia-southeast1-docker.pkg.dev/project-e03d9435-10f2-445b-943/practice-tour-repo/hello-service
 
-# JOBS: the actual work
 jobs:
-  deploy:
-    runs-on: ubuntu-latest  # GitHub gives you a fresh Ubuntu VM to run this
-
-    # PERMISSIONS: allows the workflow to request an OIDC token from GitHub
-    permissions:
-      contents: read        # can read your repo code
-      id-token: write       # can request identity token (for GCP auth)
-
+  test:
+    runs-on: ubuntu-latest
     steps:
-      # Step 1: Pull the repo code into the VM
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Authenticate with GCP using Workload Identity Federation
-      # No keys needed - GitHub proves its identity, GCP trusts it
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r hello-service/requirements.txt
+          pip install pytest httpx
+
+      - name: Run tests
+        run: |
+          cd hello-service
+          pytest test_main.py -v
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/562746374720/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: sa-github-actions@project-e03d9435-10f2-445b-943.iam.gserviceaccount.com
 
-      # Step 3: Install gcloud CLI in the VM
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # Step 4: Build Docker image using Cloud Build and push to Artifact Registry
-      # Tags with git SHA instead of "latest" so every deploy is traceable
       - name: Build and push image
         run: |
           gcloud builds submit \
             --tag ${{ env.IMAGE }}:${{ github.sha }} \
             ./hello-service
 
-      # Step 5: Deploy the new image to Cloud Run
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
