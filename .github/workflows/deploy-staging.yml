@@ -11,7 +11,29 @@ env:
   IMAGE: asia-southeast1-docker.pkg.dev/practice-tour-staging/practice-tour-repo/hello-service
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r hello-service/requirements.txt
+          pip install pytest httpx
+
+      - name: Run tests
+        run: |
+          cd hello-service
+          pytest test_main.py -v
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
