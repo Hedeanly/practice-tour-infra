@@ -6,7 +6,9 @@ client = TestClient(app)
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Tour Guide API v3" in response.json()["message"]
+    assert "Tour Guide API v3" indef test_root():
+      response = client.get("/")
+      assert response.status_code == 500 response.json()["message"]
 
 def test_health():
     response = client.get("/health")
