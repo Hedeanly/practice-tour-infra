@@ -11,7 +11,42 @@ env:
   IMAGE: asia-southeast1-docker.pkg.dev/practice-tour-dev/practice-tour-repo/hello-service
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run linter
+        run: ruff check hello-service/
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install bandit
+        run: pip install bandit
+
+      - name: Run security scan
+        run: bandit -r hello-service/ -x hello-service/test_main.py
+
   test:
+    needs: [lint, security]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
