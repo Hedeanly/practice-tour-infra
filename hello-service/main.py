@@ -5,7 +5,8 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Tour Guide API v3", "environment": "powered by CI/CD"}
+    raise Exception("Broken on purpose :3")
+
 
 @app.get("/health")
 def health():
